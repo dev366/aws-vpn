@@ -1,0 +1,142 @@
+# EditorConfig helps developers define and maintain consistent
+# coding styles between different editors and IDEs
+# http://editorconfig.org
+#
+# https://github.com/editorconfig/editorconfig/wiki/EditorConfig-Properties
+#
+
+root = true
+
+[*]
+indent_style = space
+indent_size = 4
+end_of_line = lf
+charset = utf-8
+trim_trailing_whitespace = false
+insert_final_newline = true
+max_line_length = 120
+
+[*.{css,less}]
+curly_bracket_next_line = false
+indent_brace_style = 1TBS
+line_comment = //
+block_comment_start = /*
+block_comment_end = */
+quote_type = single
+
+[*.js]
+curly_bracket_next_line = false
+spaces_around_operators = true
+# spaces_around_brackets =
+indent_brace_style = 1TBS
+continuation_indent_size = 4
+# block_comment =
+line_comment = //
+block_comment_start = /*
+block_comment_end = */
+quote_type = single
+
+[*.{bat,cmd}]
+end_of_line = crlf
+
+[*.sh]
+line_comment = #
+
+[*.json]
+indent_size = 2
+quote_type = double
+
+[*.{htm,html}]
+block_comment_start = <!--
+block_comment_end = -->
+quote_type = single
+
+[{Vagrantfile,Guardfile,*.rb}]
+indent_size = 2
+spaces_around_operators = true
+# spaces_around_brackets =
+continuation_indent_size = 2
+# block_comment =
+line_comment = #
+block_comment_start = =begin
+block_comment_end = =end
+#quote_type = auto
+
+[*.lua]
+indent_size = 2
+curly_bracket_next_line = false
+spaces_around_operators = true
+# spaces_around_brackets =
+indent_brace_style = 1TBS
+continuation_indent_size = 2
+# block_comment =
+line_comment = --
+block_comment_start = --[[
+block_comment_end = ]]--
+quote_type = single
+
+[*.{java,groovy}]
+curly_bracket_next_line = false
+spaces_around_operators = true
+# spaces_around_brackets =
+indent_brace_style = 1TBS
+continuation_indent_size = 4
+# block_comment =
+line_comment = //
+block_comment_start = /*
+block_comment_end = */
+
+[*.groovy]
+quote_type = single
+
+[*.yml]
+indent_style = space
+indent_size = 2
+
+# [*]
+# [*.{js,py}]
+# [*.py]
+# [Makefile]
+# [lib/**.js]
+# [{package.json,.travis.yml}]
+
+
+# Universal Properties
+#
+# indent_style = space # tab | space
+# indent_size = 4 # int | tab
+# tab_width = 4 # a positive integer (defaults indent_size when indent_size is a number)
+# end_of_line = lf #  lf | cr | lf
+# charset = utf-8 # latin1 | utf-8 | utf-16be | utf-16le
+# trim_trailing_whitespace = true # true | false
+# insert_final_newline = true | false
+# max_line_length = 80 # positive int, only emax or vim
+
+
+# Domain-Specific Properties - The following properties are not intended to be implemented by EditorConfig.
+# This is simply a brainstorm of domain-specific properties that could be supported
+# by some tools that rely on EditorConfig files.
+#
+# single | double | auto
+# quote_type =
+
+# domain: C-family languages (such as C, C++, D, Objective-C, etc.)
+# c_include_path =
+
+# domain: java
+# java_class_path = # domain: java
+
+# true | fasle, domain: C-family languages (such as C, C++, Java, Javascript, etc.)
+# curly_bracket_next_line =
+
+# true | false | hybrid
+# spaces_around_operators =
+
+# none | inside | outside | both
+# spaces_around_brackets =
+
+# K&R | Allman | GNU | Horstmann, domain: C-family languages (such as C, C++, Java, Javascript, etc.) with code blocks using curly braces
+# indent_brace_style =
+
+# int, domain: JetBrains (IntelliJ IDEA)
+# continuation_indent_size =
