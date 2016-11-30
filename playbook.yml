@@ -119,11 +119,13 @@
         - sign-req
         - whichopensslcnf
 
-    - file: path='/etc/openvpn/easy-rsa/keys/' state=directory
     - command: creates=/etc/openvpn/dh2048.pem openssl dhparam -out /etc/openvpn/dh2048.pem 2048
 
     - template: src='files/vars' dest='/etc/openvpn/easy-rsa/' owner=root group=root mode=0644
     # - shell: chdir=/etc/openvpn/easy-rsa . ./vars && ./clean-all
+    - file: path='/etc/openvpn/easy-rsa/keys/' state=directory mode=go-rwx
+    - file: path='/etc/openvpn/easy-rsa/keys/index.txt' state=touch
+    - copy: content='01' dest='/etc/openvpn/easy-rsa/keys/serial'
     - shell: chdir=/etc/openvpn/easy-rsa creates=/etc/openvpn/easy-rsa/keys/ca.key . ./vars && ./build-ca --batch
     - shell: chdir=/etc/openvpn/easy-rsa creates=/etc/openvpn/easy-rsa/keys/server.key . ./vars && ./build-key-server --batch server
 
