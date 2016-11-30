@@ -9,36 +9,37 @@
     region: us-west-2
 
   tasks:
-    # - name: Create key pair
-    #   ec2_key:
-    #     name: vpn-key
-    #     key_material: '{{ item }}'
-    #     region: '{{ region }}'
-    #     aws_access_key: '{{ ec2_access_key }}'
-    #     aws_secret_key: '{{ ec2_secret_key }}'
-    #   with_file: /Users/pub/.ssh/vpn-key.pub
+    - name: Create key pair
+      ec2_key:
+        name: vpn-key
+        key_material: '{{ item }}'
+        region: '{{ region }}'
+        aws_access_key: '{{ ec2_access_key }}'
+        aws_secret_key: '{{ ec2_secret_key }}'
+      with_file: /Users/pub/.ssh/vpn-key.pub
 
-    # - name: Create a security group
-    #   ec2_group:
-    #     aws_access_key: '{{ ec2_access_key }}'
-    #     aws_secret_key: '{{ ec2_secret_key }}'
-    #     name: '{{ security_group }}'
-    #     description: Security Group for VPN Servers
-    #     region: '{{ region }}'
-    #     rules:
-    #       - proto: tcp
-    #         from_port: 22
-    #         to_port: 22
-    #         cidr_ip: 0.0.0.0/0
-    #       - proto: udp
-    #         from_port: 1194
-    #         to_port: 1194
-    #         cidr_ip: 0.0.0.0/0
-    #     rules_egress:
-    #       - proto: all
-    #         cidr_ip: 0.0.0.0/0
+    - name: Create a security group
+      ec2_group:
+        aws_access_key: '{{ ec2_access_key }}'
+        aws_secret_key: '{{ ec2_secret_key }}'
+        name: '{{ security_group }}'
+        description: Security Group for VPN Servers
+        region: '{{ region }}'
+        rules:
+          - proto: tcp
+            from_port: 22
+            to_port: 22
+            cidr_ip: 0.0.0.0/0
+          - proto: udp
+            from_port: 1194
+            to_port: 1194
+            cidr_ip: 0.0.0.0/0
+        rules_egress:
+          - proto: all
+            cidr_ip: 0.0.0.0/0
 
-    - ec2:
+    - name: Create EC2 instance
+      ec2:
         key_name: vpn-key
         instance_type: t2.micro
         image: ami-01f05461 # Ubuntu Server 14.04 LTS (HVM), SSD Volume Type.
@@ -88,14 +89,19 @@
         - openvpn
         - easy-rsa
 
-    - template: src='files/server.conf' dest='/etc/openvpn/' owner=root group=root mode=0644
-    - sysctl: name='net.ipv4.ip_forward' value=1 sysctl_set=yes state=present reload=yes
+    - name: Copy server.conf to the remote
+      template: src='files/server.conf' dest='/etc/openvpn/' owner=root group=root mode=0644
+
+    - name: Turn on IP4 Forwarding
+      sysctl: name='net.ipv4.ip_forward' value=1 sysctl_set=yes state=present reload=yes
 
     # - copy: src='{{ item }}' dest='/etc/openvpn/' remote_src=yes
       # with_fileglob:
         # - '/usr/share/easy-rsa/*'
 
-    - file: path='/etc/openvpn/easy-rsa/' state=directory
+    - name: Create easy-rsa directory
+      file: path='/etc/openvpn/easy-rsa/' state=directory
+
     - name: Copy easy-rsa files
       copy: src='/usr/share/easy-rsa/{{ item }}' dest='/etc/openvpn/easy-rsa/' remote_src=yes mode=a+rwx
       with_items:
@@ -119,20 +125,28 @@
         - sign-req
         - whichopensslcnf
 
-    - command: creates=/etc/openvpn/dh2048.pem openssl dhparam -out /etc/openvpn/dh2048.pem 2048
+    - name: Generate Diffie-Hellman key
+      command: creates=/etc/openvpn/dh2048.pem openssl dhparam -out /etc/openvpn/dh2048.pem 2048
 
-    - template: src='files/vars' dest='/etc/openvpn/easy-rsa/' owner=root group=root mode=0644
-    # - shell: chdir=/etc/openvpn/easy-rsa . ./vars && ./clean-all
-    - file: path='/etc/openvpn/easy-rsa/keys/' state=directory mode=go-rwx
-    - file: path='/etc/openvpn/easy-rsa/keys/index.txt' state=touch
-    - copy: content='01' dest='/etc/openvpn/easy-rsa/keys/serial'
-    - shell: chdir=/etc/openvpn/easy-rsa creates=/etc/openvpn/easy-rsa/keys/ca.key . ./vars && ./build-ca --batch
-    - shell: chdir=/etc/openvpn/easy-rsa creates=/etc/openvpn/easy-rsa/keys/server.key . ./vars && ./build-key-server --batch server
+    - name: Copy vars file
+      template: src='files/vars' dest='/etc/openvpn/easy-rsa/' owner=root group=root mode=0644
+    - name: Create keys directory
+      file: path='/etc/openvpn/easy-rsa/keys/' state=directory mode=go-rwx
+    - name: Create keys/index.txt file
+      copy: content='' dest='/etc/openvpn/easy-rsa/keys/index.txt' force=no
+    - name: Create keys/serial file
+      copy: content='01' dest='/etc/openvpn/easy-rsa/keys/serial' force=no
+    - name: Run easy-rsa/build-ca script
+      shell: chdir=/etc/openvpn/easy-rsa creates=/etc/openvpn/easy-rsa/keys/ca.key . ./vars && ./build-ca --batch
+    - name: Run easy-rsa/build-key-server
+      shell: chdir=/etc/openvpn/easy-rsa creates=/etc/openvpn/easy-rsa/keys/server.key . ./vars && ./build-key-server --batch server
 
-    - copy: src='/etc/openvpn/easy-rsa/keys/{{ item }}' dest='/etc/openvpn' remote_src=yes
+    - name: Install keys
+      copy: src='/etc/openvpn/easy-rsa/keys/{{ item }}' dest='/etc/openvpn' remote_src=yes
       with_items:
         - server.crt
         - server.key
         - ca.crt
 
-    - service: name=openvpn state=started
+    - name: Start OpenVPN service
+      service: name=openvpn state=started
